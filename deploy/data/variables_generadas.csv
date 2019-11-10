@@ -1,0 +1,75 @@
+﻿Nombre de variable,Descripcion
+admin_personal,"Proporción de personal administrativo, auxiliar y de servicios del total de personal"
+alum_especiales_h,Proporción de alumnos hombres con necesidades educativas especiales
+alum_personal_prop,Número de alumnos por personal escolar
+alum_salon,Número de alumnos por salón (CEMABE)
+alum1,Número total de alumnos en primero de primaria
+alumnos_salon,Número de alumnos por salón (F911)
+alums_grupo_cuarto_final,Número de alumnos por grupo en cuarto de primaria al final del ciclo escolar
+alums_grupo_cuarto_inicial,Número de alumnos por grupo en cuarto de primaria al inicio del ciclo escolar
+alums_grupo_quinto_final,Número de alumnos por grupo en quinto de primaria al final del ciclo escolar
+alums_grupo_quinto_inicial,Número de alumnos por grupo en quinto de primaria al inicio del ciclo escolar
+alums_grupo_sexto_final,Número de alumnos por grupo en sexto de primaria al final del ciclo escolar
+alums_grupo_sexto_inicial,Número de alumnos por grupo en sexto de primaria al inicio del ciclo escolar
+alums_grupo_tercero_final,Número de alumnos por grupo en tercero de primaria al final del ciclo escolar
+alums_grupo_tercero_inicial,Número de alumnos por grupo en tercero de primaria al inicio del ciclo escolar
+alums_maestro_final,Número de alumnos entre número de maestros al final del ciclo escolar
+alums_personal_final,Número de alumnos entre número total de personal al final del ciclo escolar
+anyo_actual,Último año del periodo del cual se calcula el cambio
+cambio_alums_grupo,Cambio entre el número de alumnos por grupo al final y al principio del ciclo escolar
+cambio_alums_personal,Cambio entre la proporción de alumnos por personal al final y al principio del ciclo escolar
+cambio_matricula,Cambio de matrícula entre el inicio y el final del ciclo escolar
+cambio_prop_mh,Cambio en la proporción de alumnos mujeres y hombres entre el inicio y el final del ciclo escolar
+capacidad_alumnos,Total de alumnos que podrían ser atendidos en el inmueble
+cct,Clave del Centro de Trabajo. Identifica a las escuelas. 
+colegiatura,Costo de colegiatura anual
+compu_por_alumnos,Proporción de computadoras por alumnos
+compu_sirven,Proporción de las computadoras que sí sirven
+costo_esc,Costo de las escuelas separado a la colegiatura
+diferencia,Diferencia de años entre el periodo actual y el periodo anterior
+DIRSERVREG,Numero de delegación regional a la que pertenece 
+edo,Entidad federativa en la que se encuentra la escuela 
+extranjeros_alum_h,Proporción de alumnos extranjeros hombres del total de alumnos hombres
+h_inscripcion,Proporción de alumnos hombres inscritos del total de alumnos hombres
+horas_arte,Cantidad de horas impartidas a la semana por el personal docente especial de arte en el centro de trabajo
+horas_idioma,Cantidad de horas impartidas a la semana por el personal docente especial de idiomas en el centro de trabajo
+lavamanos_alum,Número de lavamanos por alumnos 
+m_inscripcion,Proporción de alumnas mujeres inscritas del total de alumnas mujeres 
+maestros_especiales,Proporción de personal docente especial del personal docente total 
+p_mat_anterior,Calificación de matemáticas de la escuela en el periodo anterior
+muebles_reparacion,Número de muebles que necesitan reparación
+nivelCarrMagis_1V,Proporción de profesores que se encuentran en el programa de carrera magisterial en la primera vertiente (profesores frente a grupo) del total de profesores
+normal_maestros,"Proporción de personal docente con nivel educativo ""Normal” del total de personal docente"
+oficinas_por_alum,Número de oficinas administrativas por alumnos
+padres_consejo,Proporción de padres que forman parte del Consejo Escolar de Participación Social del total de miembros
+porc_h_aprobados,Proporción de alumnos hombres aprobados al final del ciclo escolar
+porc_h_existencia,Proporción de alumnos hombres que se inscribieron y siguen en la escuela al terminar el ciclo escolar
+porc_m_aprobados,Proporción de alumnas mujeres que aprobaron al final del ciclo escolar
+porc_m_existencia,Proporción de alumnas mujeres que se inscribieron y siguen en la escuela al terminar el ciclo escolar
+porc_ocupacion,Cuanto de la capacidad total de la escuela se está utilizando
+porc_tot_aprobados,Proporción de alumnos que aprobaron al final del ciclo escolar
+porc_tot_existencia,Proporción de alumnos que se inscribieron y siguen en la escuela al terminar el ciclo escolar
+prop_carr_magisterial,Proporción de personal en el programa de carrera magisterial del total de personal 
+prop_extranjeros_final,Proporción de alumnos extranjeros del total de alumnos al inicio del ciclo escolar
+prop_extranjeros_inicial,Proporción de alumnos extranjeros del total de alumnos al final del ciclo escolar
+prom_edad_3,Promedio de edad de los alumnos de tercero de primeria 
+prom_edad_4,Promedio de edad de los alumnos de cuarto de primeria 
+prom_edad_5,Promedio de edad de los alumnos de quinto de primeria 
+prom_edad_6,Promedio de edad de los alumnos de sexto de primeria 
+prom_edad_prim,Promedio de edad de los alumnos de primaria de primeria 
+prom_preescolar_anyos,Promedio de años de preescolar cursados por alumnos de primero de primaria 
+prom_preescolar_anyos_m,Promedio de años de preescolar cursados por alumnas mujeres de primero de primaria 
+prop_mh_aprobados,
+prop_mh_final,Proporción de mujeres a hombres de los alumnos inscritos 
+prop_mh_inicial,Proporción de alumnos que son repetidores sobre el total de alumnos 
+prop_mh_inscripcion,Número de hombres inscritos sobre el número de mujeres inscritas 
+prop_repetidores,Proporción de los alumnos repetidores sobre el total de alumnos
+prop_usaer_inicial,Proporción alumnos atendidos por la Unidad de Servicios de Apoyo a la Educación Regular del total de alumnos
+semaforo_std,"Variable objetivo. Indica si en el periodo seleccionado, bajo el desempeño escolar más de 0.2 desviaciones estándar. "
+tazas_sanitarias_alum,Número de tazas sanitarias por alumnos 
+tot_h,Número total de alumnos hombres en la escuela 
+tot_inscripcion,Número total de alumnos que se inscribieron en la escuela 
+tot_personal,Número total de personal en la escuela 
+total_banyos,Número total de baños en la escuela 
+usaer_alum_h,Proporción de alumnos hombres atendidos por la Unidad de Servicios de Apoyo a la Educación Regular del total de alumnos hombres
+ZONAESCOLA,Divisiones geográficas de escuelas

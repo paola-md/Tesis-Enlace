@@ -1,0 +1,14 @@
+python3-dev
+tdsodbc
+unixodbc
+unixodbc-dev
+unixODBC-devel
+python-pyodbc
+libsqliteodbc
+installodbc
+msodbcsql17
+mssql-tools
+msodbcsql=13.0.1.0-1
+mssql-tools=14.0.2.0-1
+unixodbc
+https://packages.microsoft.com/ubuntu/16.04/prod/pool/main/m/msodbcsql/msodbcsql_13.1.9.2-1_amd64.deb
