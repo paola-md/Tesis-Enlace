@@ -134,7 +134,7 @@ def markdown_popup():
                                 (disponible para descargar [aquí](https://www.dropbox.com/sh/h6gjchdww5d9js4/AADsEaVl6zTr0bwMogMxNw1Fa?dl=0)).
 
                                 ###### Generadas
-                                La tabla generada está disponible [aquí](https://www.dropbox.com/sh/w0ypo3927st37lk/AAANQnov3alEnQYMaBpj2D6ca?dl=0) 
+                                La tabla generada está disponible [aquí](https://drive.google.com/open?id=1YolynV1iNurMog-cruCtvzudhm6nYkV7) 
                                 
                                 #### Códigos 
                                 ###### Del proyecto
@@ -144,7 +144,7 @@ def markdown_popup():
 
                                 ###### De la aplicación
                                 Este aplicación utiliza el framework Dash de Python que estaba basado en Flask y React. 
-                                Para aprender más, visita el [repositorio de la aplicación](https://github.com/paola-md/predict-enlace)
+                                Para aprender más, visita el [repositorio de la aplicación](https://github.com/paola-md/enlace_dash_app)
 
                                 """
                                 )
@@ -227,8 +227,8 @@ app.layout = html.Div(
                 html.Div(
                     [
                      html.H5("Acerca del proyecto",
-                    className="control_label"),
-                    html.P("El objetivo de la aplicación es proporcionar información para la toma de decisiones de politicas públicas y asignación de programas sociales educativos en primarias de México. La aplicación genera criterios de riesgo de desempeño escolar para identificar cuáles escueles tienen bajo desempeño y por qué. Mientras más alta sea la calificación, peor es el desempeño de la escuela.",
+                    className="control_label"),   
+                    html.P("El objetivo de la aplicación es proporcionar información para la toma de decisiones de politicas públicas y asignación de programas sociales educativos en primarias de México. La aplicación pretende responder la pregunta: ¿Cuáles escuelas primarias están en riesgo de bajar su rendimiento académico?. Asimismo, se pretende que el usuario tenga la flexibilidad de escoger los estados de interés y el tiempo a futuro. Un año hacia adelante predice el resultado en el corto plazo y cinco años hacia adelante en el largo plazo.")
                     className="control_label"),                
                     html.H5("Así que, ¿cómo funciona?",
                     className="control_label"),
