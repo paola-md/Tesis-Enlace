@@ -122,7 +122,7 @@ def markdown_popup():
                                 children=dedent(
                                     """
                                 ##### Documentación                                
-                                El proyecto se elaboró utilizando la metodología CRISP-DM. Para aprender más, consultar el [reporte final](https://github.com/paola-md/enlace-performance/blob/master/reporte.pdf). 
+                                El proyecto se elaboró utilizando la metodología CRISP-DM. Para aprender más, consultar el [reporte final](https://github.com/paola-md/Tesis-Enlace/tree/master/analysis). 
 
                                 #### Bases de datos 
                                 ###### Originales
@@ -140,11 +140,11 @@ def markdown_popup():
                                 ###### Del proyecto
                                 El preprocesamiento de datos, integración de tablas y creación de nuevas variables se hizo en Stata. 
                                 Mientras que el análisis de datos, selección de variables y modelos se implementaron en Python.
-                                Para aprender más, visita el [repositorio del proyecto](https://github.com/paola-md/enlace-performance)     
+                                Para aprender más, visita el [repositorio del proyecto](https://github.com/paola-md/Tesis-Enlace/tree/master/code)     
 
                                 ###### De la aplicación
                                 Este aplicación utiliza el framework Dash de Python que estaba basado en Flask y React. 
-                                Para aprender más, visita el [repositorio de la aplicación](https://github.com/paola-md/enlace_dash_app)
+                                Para aprender más, visita el [repositorio de la aplicación](https://github.com/paola-md/Tesis-Enlace/tree/master/deploy)
 
                                 """
                                 )
@@ -196,7 +196,7 @@ app.layout = html.Div(
                         html.Div(
                             [
                                 html.H3(
-                                    "Producto de datos para la toma de decisión en programas sociales para escuelas primarias en México",
+                                    "Producto de datos para la toma de decisiones en programas sociales para escuelas primarias en México",
                                     style={"margin-bottom": "0px"},
                                 ),
                                 html.H5(
@@ -228,11 +228,11 @@ app.layout = html.Div(
                     [
                      html.H5("Acerca del proyecto",
                     className="control_label"),   
-                    html.P("El objetivo de la aplicación es proporcionar información para la toma de decisiones de politicas públicas y asignación de programas sociales educativos en primarias de México. La aplicación pretende responder la pregunta: ¿Cuáles escuelas primarias están en riesgo de bajar su rendimiento académico?. Asimismo, se pretende que el usuario tenga la flexibilidad de escoger los estados de interés y el tiempo a futuro. Un año hacia adelante predice el resultado en el corto plazo y cinco años hacia adelante en el largo plazo.")
+                    html.P("El objetivo de la aplicación es proporcionar información para la toma de decisiones de politicas públicas y asignación de programas sociales educativos en primarias de México. La aplicación pretende responder la pregunta: ¿Cuáles escuelas primarias están en riesgo de bajar su rendimiento académico?. Asimismo, se pretende que el usuario tenga la flexibilidad de escoger los estados de interés y el tiempo a futuro. Un año hacia adelante predice el resultado en el corto plazo y tres años hacia adelante en el mediano plazo (medio sexenio).",
                     className="control_label"),                
                     html.H5("Así que, ¿cómo funciona?",
                     className="control_label"),
-                    html.P("Al seleccionar estados y tipo de escuela, la aplicación clasifica las escuelas utilizando Al seleccionar estados y tipo de escuela, la aplicación clasifica las escuelas utilizando una regresión Bernoulli con liga logística." ,
+                    html.P("Al seleccionar estados y número de años a futuro, la aplicación identifica a las escuelas en riesgo de bajar su desempeño más de 0.2 desviciones estándar utilizando una regresión Bernoulli con liga logística." ,
                     className="control_label"),
                     ],  
                     className="pretty_container seven columns"),
@@ -244,7 +244,7 @@ app.layout = html.Div(
                 dcc.Dropdown(
                     id="estado_dropdown",
                     #options=edo.to_dict("records"),
-                    value=0,
+                    value=1,
                     className="dcc_control",
                     multi=True,
                 ),
@@ -261,10 +261,8 @@ app.layout = html.Div(
                         {"label": "1 año", "value": 1},
                         {"label": "2 años", "value": 2},
                         {"label": "3 años", "value": 3},
-                        {"label": "4 años", "value": 4},
-                        {"label": "5 años", "value": 5},
                     ],
-                    value=5,
+                    value=1,
                     #labelStyle={"display": "inline-block"},
                     className="dcc_control",
                 ),                
@@ -299,7 +297,7 @@ app.layout = html.Div(
             [
                 html.Div(
                     [html.H6(id="calif-escuela"), 
-                    html.P("Calificaciones escuelas"),
+                    html.P("Resultados por escuela"),
                     html.A('Descargar', id='link_descarga',  href="/results/info.csv"), ],
                     id="wells",
                     className="mini_container",
@@ -307,16 +305,6 @@ app.layout = html.Div(
                 html.Div(
                     [html.H6(id="num_escuelas"), html.P("Número de escuelas en subconjunto")],
                     id="esc",
-                    className="mini_container",
-                ),
-                html.Div(
-                    [html.H6(id="r2a"), html.P("Valor F1 ponderado")],
-                    id="r2a_div",
-                    className="mini_container",
-                ),
-                html.Div(
-                    [html.H6(id="rmse"), html.P("Margen de ganancia sobre el punto de referencia")],
-                    id="rmse_div",
                     className="mini_container",
                 ),
             ],
@@ -354,9 +342,7 @@ def toggle_fade(n, is_in):
     [Output('criteria_table', "data"),
     Output("map", "srcDoc"),
     Output('link_descarga', "href"),
-    Output('r2a','children'),
-    Output('num_escuelas','children'),
-    Output('rmse','children'),],
+    Output('num_escuelas','children')],
     [Input('button_envia', "n_clicks")],
     [State('tipoEscuela', "value"),
      State("estado_dropdown", "value")])
@@ -380,8 +366,7 @@ def update_results(n_clicks, value_tipo, value_estados):
 
 
         agent = DecreasePerformance()
-        f1, margen, nuevas_vars, df_cct = agent.get_results(tipo,lista_final)
-
+        num_obs, nuevas_vars, df_cct  = agent.get_results(tipo,lista_final)
 
         criteria = nuevas_vars.to_dict('records')
      
@@ -399,10 +384,8 @@ def update_results(n_clicks, value_tipo, value_estados):
              df_cct.to_csv(nombre_rs, index=False)
         update_link = "/download/risk_"+ str(tipo) + "_" + str(id_map) + ".csv"
 
-        f1_res = f1.round(2)
-        margen_res = margen.round(2)
-        num_escu = format(len(df_cct), ',')
-        return criteria, abre_mapa, update_link, f1_res, num_escu, margen_res
+        num_escu = format(num_obs, ',')
+        return criteria, abre_mapa, update_link, num_escu
 
 @app.callback(
     Output("radioitems-checklist-output", "children"),
@@ -425,7 +408,7 @@ def on_form_change(n_drop):
     [Input('tipoEscuela', 'value')]
 )
 def update_date_dropdown(tipo):
-    if tipo == "I":
+    if tipo == 3:
         edo = pd.read_csv("data/estados_ind.csv", encoding = 'latin-1')
     else:
         edo = pd.read_csv("data/estados.csv", encoding = 'latin-1')
