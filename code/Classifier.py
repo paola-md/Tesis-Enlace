@@ -10,6 +10,8 @@ import pyodbc #Conectar base de datos
 import folium #Mapas
 from folium import plugins
 from folium.plugins import MarkerCluster
+import numpy as np
+from math import floor, ceil
 
 class DecreasePerformance:     
     """
@@ -17,7 +19,7 @@ class DecreasePerformance:
     Tiene los métodos para extraer la tabla de sql, correr clasificadores y crea mapas.
     """
 
-    def get_db(self,  dif=5, lista_estados=[]):
+    def get_db(self,  dif=1, lista_estados=[]):
         """ 
         Obtiene tabla de datos desde la base de datos remota
 
@@ -29,45 +31,62 @@ class DecreasePerformance:
         """
         running_in=2
         if running_in==3: #Pruebas locales
-            temp = os.path.expanduser('C:\\Users\\pmeji\\\Documents\\Tesis\\build\\temp')
-            filename= "cambios_2013.csv"
+            temp = os.path.expanduser('C:\\Users\\pmeji\\\Documents\\FINAL_TESIS\\temp')
+
+            filename= "slide_" + str(dif) +  "_deploy.csv"
             addr= os.path.join(temp, filename)
             df = pd.read_csv(addr)
+
+            filename= "slide_" + str(dif) +  "_new.csv"
+            addr= os.path.join(temp, filename)
+            df_pred = pd.read_csv(addr)
+
             if lista_estados[0]==0:
-                df_edo = df
+                df_res = df
+                df_res_pred = df_pred
             else:
-                df_edo = df[df['edo'].isin(lista_estados)]
-            df_res= df_edo[df_edo['diferencia']==dif] 
+                df_res = df[df['edo'].isin(lista_estados)]
+                df_res_pred = df_pred[df_pred['edo'].isin(lista_estados)]
+
             
         else:     
-            if int(dif) > 0 & int(dif) <6:
+            if int(dif) > 0 & int(dif) <4:
                 database = 'enlace911'
                 username = 'paola'
                 password = 'En3r02019'
             
                 if running_in == 2:
                     driver = '{ODBC Driver 17 for SQL Server}'
-                    server = 'educacion.database.windows.net,1433'
+                    server = 'educacion2.database.windows.net,1433'
                     cnxn = pyodbc.connect('DRIVER='+driver+';SERVER='+server+';DATABASE='+database+';UID='+username+';PWD='+ password)
                 elif running_in==1: #Local con SQL
                     driver = '{SQL Server}'
-                    server = 'educacion.database.windows.net'
+                    server = 'educacion2.database.windows.net'
                     cnxn = pyodbc.connect('DRIVER='+driver+';SERVER='+server+';PORT=1433;DATABASE='+database+';UID='+username+';PWD='+ password)
 
-                cond_edos = ""
+                # GET TRAIN
+                train_name = "slide_" + str(dif) +  "_deploy"
+                cond_edos = " "
                 tam_lista = len(lista_estados)
                 if tam_lista>0 and lista_estados[0]>0:
-                    cond_edos = " AND ( edo="
+                    cond_edos = " WHERE (edo = "
                     for i in range(tam_lista -1):
                         cond_edos = cond_edos + str(lista_estados[i]) + " OR edo = "
                         print(i)
                     cond_edos = cond_edos + str(lista_estados[tam_lista-1]) + " )"
 
-                sql = "SELECT * FROM cambios_2013 WHERE diferencia = " +str(dif) +  str(cond_edos) 
+                sql = "SELECT * FROM " + train_name  +  str(cond_edos) 
                 print(sql)
                 df_res = pd.read_sql(sql, cnxn)
+
+                # GET TEST
+                test_name = "slide_" + str(dif) +  "_new"
+                sql = "SELECT * FROM " + str(test_name)  +  str(cond_edos) 
+                print(sql)
+                df_res_pred = pd.read_sql(sql, cnxn)
                 cnxn.close()
-        return df_res
+
+        return df_res, df_res_pred
     
     def clean_dataset(self, df):
         """ 
@@ -82,7 +101,7 @@ class DecreasePerformance:
         X = df.drop(['cct', 'semaforo_std'], axis=1)
         X = X.apply(pd.to_numeric)
         X_num = X.select_dtypes(include = ['float', 'int']) #Exclude string variables.
-        X_num.dropna(axis=1, thresh = len(X_num)/4, inplace=True)
+        #X_num.dropna(axis=1, thresh = len(X_num)/4, inplace=True)
         
         #Deals with infinity values
         X_num[X_num==np.inf]=np.nan
@@ -114,6 +133,55 @@ class DecreasePerformance:
             X_num[vari] = X_num[vari].fillna(0)
 
         y = df_new[['semaforo_std']].astype("int16")
+        return y,X_num
+
+
+    def clean_dataset_test(self, df):
+        """ 
+        Trata los valores faltantes, valores mayor a infinito, menores a menos infinito para que 
+        los datos puedan ser usados para modelar. 
+
+        :param int dif: Los años hacia atrás para predecir el cambio de desempeño escolar
+        :return: Las variables independientes númericas (X) y variable dependiente (y)
+        :rtype: (dataframe, dataframe)
+        """
+        assert isinstance(df, pd.DataFrame), "df needs to be a pd.DataFrame"
+        X = df.drop(['cct'], axis=1)
+        X = X.apply(pd.to_numeric)
+        X_num = X
+        #X_num = X.select_dtypes(include = ['float', 'int']) #Exclude string variables.
+        #X_num.dropna(axis=1, thresh = len(X_num)/4, inplace=True)
+        
+        #Deals with infinity values
+        X_num[X_num==np.inf]=np.nan
+        X_num[X_num==-np.inf]=np.nan
+        #Deal with missing values
+        X_num = X_num.fillna(0)
+
+        #Compress data
+        X_num[X_num.select_dtypes(include = ['float64']).columns] \
+         = X_num.select_dtypes(include = ['float64']).astype(np.float16)
+        X_num[X_num.select_dtypes(include = ['int64']).columns] \
+        = X_num.select_dtypes(include = ['int64']).astype(np.int16)
+        X_num[X_num.select_dtypes(include = ['float32']).columns] \
+        = X_num.select_dtypes(include = ['float32']).astype(np.float16)
+        X_num[X_num.select_dtypes(include = ['int32']).columns] \
+        = X_num.select_dtypes(include = ['int32']).astype(np.int16)
+
+        X_num = X_num.apply(pd.to_numeric)
+        X_num[X_num==np.inf]=np.nan
+
+        indices_to_keep = ~X_num.isin([np.nan, np.inf, -np.inf]).any(1)
+        df_new = df[indices_to_keep]
+        X_num = X_num[indices_to_keep]
+
+        df_new.reset_index(drop=True, inplace=True)
+        X_num.reset_index(drop=True, inplace=True)
+        nan_val = X_num.columns[X_num.isna().any()].tolist()
+        for vari in nan_val:
+            X_num[vari] = X_num[vari].fillna(0)
+
+        y = df_new[['cct']]
         return y,X_num
 
     def predict_random_forest(self, df):
@@ -160,7 +228,7 @@ class DecreasePerformance:
         return f1, margen, nuevas_vars
 
 
-    def predict_logistic_regression(self, df):
+    def predict_logistic_regression(self, df_train, df_test ):
         """ 
         Clasifica el desempeño decreciente utilizando una regresion logística 
         calcula la métrica f1 y extrae las variables más significativas
@@ -174,33 +242,30 @@ class DecreasePerformance:
         Una lista con las 10 variables más significativas
         :rtype: float, float, list[str]
         """
-        df.dropna(subset=['semaforo_std'],inplace=True)
-        df.reset_index(drop=True, inplace=True)
-        y, X = self.clean_dataset(df)
+        df_train.dropna(subset=['semaforo_std'],inplace=True)
+        new_vars = list(df_test.columns) + ['semaforo_std']
+        df_train = df_train[new_vars]
+        df_train = df_train.drop(['modalidad'], axis = 1, errors = 'ignore')
+        df_train.reset_index(drop=True, inplace=True)
+        y_train, X_train = self.clean_dataset(df_train)
 
-        X_train, X_test, y_train, y_test = train_test_split(X, y, 
-                                                        test_size=0.15, 
-                                                        random_state=15)
+        new_vars = list(X_train.columns) + ['cct']
+        df_test = df_test[new_vars]
+        y_labels, X_test = self.clean_dataset_test(df_test)
 
         reg_rf = LogisticRegression(C=0.8, max_iter=200) 
         reg_rf.fit(X_train, y_train)
 
-        coefficients = pd.concat([pd.DataFrame(X.columns),pd.DataFrame(np.transpose(reg_rf.coef_))], axis = 1)
+        coefficients = pd.concat([pd.DataFrame(X_train.columns),pd.DataFrame(np.transpose(reg_rf.coef_))], axis = 1)
         coefficients.columns = ['Variable', 'Coeficiente']
         coefficients= coefficients.sort_values("Coeficiente",ascending=False)
         nuevas_vars = coefficients[:5].append(coefficients[-5:])
 
         y_pred = reg_rf.predict(X_test)
-        f1 = f1_score(y_test, y_pred, average='weighted') 
+        y_labels['semaforo_std']= y_pred
+        num_obs = len(y_labels)
 
-        if ((y_test.sum()/len(y_test))>0.5).bool():
-            y_bench = [1]*len(y_test)
-        else:
-            y_bench = [0]*len(y_test)
-
-        f2 = f1_score(y_test, y_bench, average='weighted') 
-        margen= f1-f2
-        return f1, margen, nuevas_vars
+        return y_labels, num_obs, nuevas_vars
 
     def edit_name(self, nombre):
         nota = ""
@@ -261,10 +326,10 @@ class DecreasePerformance:
         utilizará para construir el mapa
         :rtype: float, float, list[str], dataframe
         """
-        df = self.get_db(dif, lista_estado)
-        f1, margen, nuevas_vars = self.predict_logistic_regression(df)
+        df_train, df_test = self.get_db(dif, lista_estado)
+        y_labels, num_obs, nuevas_vars = self.predict_logistic_regression(df_train, df_test )
         tabla_vars = self.get_table(nuevas_vars)
-        return f1, margen, tabla_vars, df[['cct','semaforo_std']]
+        return num_obs, tabla_vars, y_labels
 
 
     def get_map(self, df_escuelas,name):
@@ -299,7 +364,12 @@ class DecreasePerformance:
 
         df.reset_index(drop=True, inplace=True)
         df = df.sort_values("semaforo_std", ascending= False)
-        df = df[:100]
+
+        tam = len(df)
+        hd = list(range(1,floor(tam/3),floor(tam/100)))
+        ld = list(range(ceil(tam/3),tam,floor(tam/30)))
+        final = hd +ld
+        df = df[df.index.isin(final)]
         df.reset_index(drop=True, inplace=True)
 
         for col in range(len(df)):

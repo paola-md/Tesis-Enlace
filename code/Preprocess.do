@@ -2,12 +2,12 @@
 //=====================================================================
 // Preprocesamiento de bases
 // Lee, limpia y procesa las bases por separado
-// A continuación integra las bases en el archivo final 
-// cambios_a_2_cemabe_2013.csv
+// A continuación integra las bases en 3 archivos finales: 
+// train, validation y test
 //
 // Se utilizan las bases del CEMABE, F911 y ENLACE
 //
-// Última modificación: 11/9/2019
+// Última modificación: 11/24/2019
 //=====================================================================
 //=====================================================================
 
@@ -281,7 +281,8 @@ save "$basesA\gran_panel.dta", replace
 
 
 //Limpia y  estandariza por año
-foreach anyo1 in 08 09 10 11 12 13{
+//08 09 10 11 12 13
+foreach anyo1 in 07 {
 	use "$basesA\B`anyo1'_fol.dta", clear
 	merge m:1 cct turno using "$basesD\escuelas_tipo.dta"
 	keep if _merge == 3
@@ -344,59 +345,6 @@ foreach anyo1 in 08 09 10 11 12 13{
 	}
 }
 
-foreach tipoE in 1 2 3{
-	use "$basesA\B08_ef_`tipoE'.dta", clear
-	foreach anyo1 in  09 10 11 12 13  {						
-		merge 1:1 cct turno using "$basesA\B`anyo1'_ef_`tipoE'.dta"
-		drop _merge
-	}
-	
-	foreach anyo1 in 13 12 11 10 09  {
-		foreach ant in 12 11 10 09 08  {
-			if `anyo1' >  `ant'{
-			preserve
-				gen quintil_anterior = quintil_`ant'
-				gen cambio = quintil_`anyo1' - quintil_`ant'
-				
-				gen p_mat_anterior = p_mat_std_`ant'
-				gen cambio_std = p_mat_std_`anyo1' - p_mat_std_`ant'
-				drop if missing(cambio_std)
-				gen semaforo_std = .
-				replace semaforo_std = (cambio_std < -0.2 & !missing(cambio_std))
-				
-				gen diferencia = `anyo1' - `ant'
-				gen anyo_actual = 2000 + `anyo1'
-				gen anterior = 2000 +`ant'
-				drop p_mat_std_08 percentile_08 quintil_08 p_mat_std_09 percentile_09 anyo quintil_09 p_mat_std_10 percentile_10 quintil_10 p_mat_std_11 percentile_11 quintil_11 p_mat_std_12 percentile_12 quintil_12 p_mat_std_13 percentile_13 quintil_13
-				save "$basesA\cambio_`anyo1'_`ant'_`tipoE'.dta", replace
-			restore
-			}
-		}
-	}
-	
-	use  "$basesA\cambio_13_12_`tipoE'.dta", clear
-	foreach anyo1 in 13 12 11 10 09  {
-		foreach ant in 11 10 09 08  {
-			capture confirm file "$basesA\cambio_`anyo1'_`ant'_`tipoE'.dta"
-			if _rc==0 {
-				append using "$basesA\cambio_`anyo1'_`ant'_`tipoE'.dta"
-			}
-		}
-	}
-	
-	merge m:1 cct using  "$basesA\escuelas_enlace_info.dta"
-	drop if _merge == 2
-	drop _merge
-	replace margina = 0 if missing(margina)
-	gen edo = substr(cct, 1,2)
-	gen sost = substr(cct, 3,1)
-	gen estatal = (sost=="E")
-	gen federal = (sost=="D")
-	destring edo, replace force
-	drop sost
-	save  "$basesA\cambios_`tipoE'.dta"	, replace
-	export delimited using "$basesA\cambios_`tipoE'.csv", replace
-}
 
 //=======================================================================
 //=======================================================================
@@ -748,138 +696,246 @@ foreach i in 8 9 10 11 12 13{
 	
 }
 
-// Con variables raw (esto se usó para el análisis exploratorio)
-// Genera variables cambio entre años (raw)
-foreach anyo1 in 13  {
-	foreach ant in 12 11 10 9 8  {
-		if `anyo1' >  `ant'{
-			use "$basesD\IF_G_`ant'.dta", clear
-			foreach var of varlist V*{
-				rename `var' a_`var'
-			}
-			merge 1:1 cct turno using "$basesD\IF_G_`anyo1'.dta"
-			keep if _merge == 3
-			drop _merge
-			destring turno, replace force
-			if `ant'< 10{
-				if `anyo1'< 10{
-					merge 1:1 cct turno using "$basesA\cambio_0`anyo1'_0`ant'_2.dta"
-				}
-				else{
-					merge 1:1 cct turno using "$basesA\cambio_`anyo1'_0`ant'_2.dta"
-				}
-			}
-			else{
-				merge 1:1 cct turno using "$basesA\cambio_`anyo1'_`ant'_2.dta"
-			}
-			keep if _merge == 3
-			drop _merge
-			//Generar variables de cambio
-			destring V1-V768, replace force
-			foreach var of varlist V1-V768{
-				gen dif_`var' = `var' - a_`var'
-			}
-			destring VAR1_F-VAR683_F, replace force
-			foreach var of varlist VAR1_F-VAR683_F{
-				gen dif_`var' = `var' - a_`var'
-			}
-			save "$basesA\cambio_raw_`anyo1'_`ant'_2.dta", replace				
-		}
-	}
-}
 
-use  "$basesA\cambio_raw_13_12_2.dta", clear
-foreach anyo1 in 13   {
-	foreach ant in 11 10 09 08  {
-		capture confirm file "$basesA\cambio_raw_`anyo1'_`ant'_2.dta"
-		if _rc==0 {
-			append using "$basesA\cambio_raw_`anyo1'_`ant'_2.dta"
-		}
-	}
-}
-
-merge m:1 cct using  "$basesA\escuelas_enlace_info.dta"
-drop if _merge == 2
-drop _merge
-replace margina = 0 if missing(margina)
-gen edo = substr(cct, 1,2)
-gen sost = substr(cct, 3,1)
-gen estatal = (sost=="E")
-gen federal = (sost=="D")
-destring edo, replace force
-drop sost
-
-export delimited using "$basesA\cambios_raw_2_cemabe.csv", replace
-save  "$basesA\cambios_raw_2_cemabe.dta"	, replace
-
-use "$basesA\cambios_raw_2_cemabe.dta", clear
-keep if anyo_actual == 2013
-drop VAR*
-drop V*
-drop dif_*
-drop a_*
-merge m:1 cct turno using "$basesA\inmuebles_centros.dta"
-keep if _merge == 3 		
-export delimited using "$basesA\raw_2_cemabe.csv", replace
-save  "$basesA\raw_2_cemabe.dta"	, replace
- 
 //Genera variables de cambio con variables generadas
 //CON VARIABLES
-foreach anyo1 in 13   {
-	foreach ant in 12 11 10 09 08  {
-		if `anyo1' >  `ant'{
-			use "$basesD\G_`ant'.dta", clear
-			foreach var of varlist alum1-costo_transporte{
-				rename `var' a_`var'
-			}	
-			rename a_cct cct
-			merge 1:1 cct turno using "$basesD\G_`anyo1'.dta"
-			keep if _merge == 3
-			drop _merge
-			merge 1:1 cct turno using "$basesA\cambio_`anyo1'_`ant'_2.dta"
-			keep if _merge == 3
-			drop _merge
-			//Generar variables de cambio
-			foreach var of varlist alum1-costo_transporte{
-				gen dif_`var' = `var' - a_`var'
-				gen p_`var' = `var' / a_`var'
-			}
-			save "$basesA\cambio_a_`anyo1'_`ant'_2.dta", replace
-			
-		}
+foreach ant in 08 09 10 11 {
+	local anyo1 = `ant' + 1
+	use "$basesD\G_`ant'.dta", clear
+	foreach var of varlist alum1-costo_transporte{
+		rename `var' a_`var'
+	}	
+	rename a_cct cct
+	merge 1:1 cct turno using "$basesD\G_`anyo1'.dta"
+	keep if _merge == 3
+	drop _merge
+	//Generar variables de cambio
+	foreach var of varlist alum1-costo_transporte{
+		gen dif_`var' = `var' - a_`var'
+		gen p_`var' = `var' / a_`var'
 	}
+	
+	save "$basesA\cambio_a_`anyo1'_`ant'_2.dta", replace
+	
 }
 
-use  "$basesA\cambio_a_13_12_2.dta", clear
-foreach anyo1 in 13   {
-	foreach ant in 11 10 09 08  {
-		capture confirm file "$basesA\cambio_a_`anyo1'_`ant'_2.dta"
-		if _rc==0 {
-			append using "$basesA\cambio_a_`anyo1'_`ant'_2.dta"
+
+foreach anyo1 in 09 10 11 12 {
+		if `anyo1' == 09{
+			local ant = "08"
 		}
-	}
+		else if `anyo1' == 10{
+			local ant = "09"
+		}
+		else{
+			local ant = `anyo1' - 1
+		}
+		local sig = `anyo1' + 1
+		use "$basesA\B`ant'_ef_2.dta", clear
+		merge 1:1 cct turno using "$basesA\B`anyo1'_ef_2.dta"
+		keep if _merge ==3
+		drop _merge
+		gen cambio_std = p_mat_std_`anyo1'- p_mat_std_`ant'
+		drop if missing(cambio_std)
+		gen pendiente = 0
+		replace pendiente = (cambio_std < 0 & !missing(cambio_std))
+		merge 1:1 cct turno using "$basesA\B`sig'_ef_2.dta"
+		keep if _merge ==3
+		drop _merge
+		gen cambio_final = p_mat_std_`sig'-p_mat_std_`anyo1'
+		drop if missing(cambio_final)
+		gen semaforo_std = 0
+		replace semaforo_std = (cambio_final< -0.2 & !missing(cambio_final))
+		drop p_mat_std_`sig' percentile_`sig' quintil_`sig' cambio_final anyo
+		rename p_mat_std_`ant' p_mat_std_ant
+		rename p_mat_std_`anyo1' p_mat_std_actual
+		rename quintil_`ant' quintil_ant
+		rename quintil_`anyo1' quintil_actual
+		rename percentile_`ant' percentile_ant
+		rename percentile_`anyo1' percentile_actual
+
+		merge m:1 cct using  "$basesA\escuelas_enlace_info.dta"
+		drop if _merge == 2
+		drop _merge
+		replace margina = 0 if missing(margina)
+		gen edo = substr(cct, 1,2)
+		gen sost = substr(cct, 3,1)
+		gen estatal = (sost=="E")
+		gen federal = (sost=="D")
+		gen priv = (sost=="P")
+		destring edo, replace force
+		drop sost
+
+		merge 1:1 cct turno using "$basesA\cambio_a_`anyo1'_`ant'_2.dta"
+		keep if _merge ==3
+		drop _merge 
+		drop N_ENTIDAD-DISPON CLAVECCT N_CLAVECCT
+		drop if missing(semaforo_std)
+		
+		merge 1:1 cct turno using "$basesA\cemabe_general_sum.dta"
+		keep if _merge ==3
+		drop _merge
+		drop ageb
+		
+		compress
+		save "$basesA\set_`anyo1'_`ant'.dta", replace
+		//export delimited  "$basesA\set_`anyo1'_`ant'.csv", replace
 }
 
-merge m:1 cct using  "$basesA\escuelas_enlace_info.dta"
-drop if _merge == 2
-drop _merge
-replace margina = 0 if missing(margina)
-gen edo = substr(cct, 1,2)
-gen sost = substr(cct, 3,1)
-gen estatal = (sost=="E")
-gen federal = (sost=="D")
-destring edo, replace force
-drop sost
+use "$basesA\set_09_08.dta", clear
+foreach anyo1 in 10 11 {
+		if `anyo1' == 10{
+			local ant = "09"
+		}
+		else{
+			local ant = `anyo1' - 1
+		}
+		append using "$basesA\set_`anyo1'_`ant'.dta"
+}
+
+save "$basesA\slidding_train_1.dta", replace
+export delimited  "$basesA\slide_train_1.csv", replace	
+		
+use "$basesA\set_12_11.dta", replace
+export delimited  "$basesA\slide_test_1.csv", replace
+
+/// VENTANA 2
+foreach anyo1 in 09 10 11 {
+		if `anyo1' == 09{
+			local ant = "08"
+		}
+		else if `anyo1' == 10{
+			local ant = "09"
+		}
+		else{
+			local ant = `anyo1' - 1
+		}
+		local sig = `anyo1' + 2
+		use "$basesA\B`ant'_ef_2.dta", clear
+		merge 1:1 cct turno using "$basesA\B`anyo1'_ef_2.dta"
+		keep if _merge ==3
+		drop _merge
+		gen cambio_std = p_mat_std_`anyo1'- p_mat_std_`ant'
+		drop if missing(cambio_std)
+		gen pendiente = 0
+		replace pendiente = (cambio_std < 0 & !missing(cambio_std))
+		merge 1:1 cct turno using "$basesA\B`sig'_ef_2.dta"
+		keep if _merge ==3
+		drop _merge
+		gen cambio_final = p_mat_std_`sig'-p_mat_std_`anyo1'
+		drop if missing(cambio_final)
+		gen semaforo_std = 0
+		replace semaforo_std = (cambio_final< -0.2 & !missing(cambio_final))
+		drop p_mat_std_`sig' percentile_`sig' quintil_`sig' cambio_final anyo
+		rename p_mat_std_`ant' p_mat_std_ant
+		rename p_mat_std_`anyo1' p_mat_std_actual
+		rename quintil_`ant' quintil_ant
+		rename quintil_`anyo1' quintil_actual
+		rename percentile_`ant' percentile_ant
+		rename percentile_`anyo1' percentile_actual
+
+		merge m:1 cct using  "$basesA\escuelas_enlace_info.dta"
+		drop if _merge == 2
+		drop _merge
+		replace margina = 0 if missing(margina)
+		gen edo = substr(cct, 1,2)
+		gen sost = substr(cct, 3,1)
+		gen estatal = (sost=="E")
+		gen federal = (sost=="D")
+		gen priv = (sost=="P")
+		destring edo, replace force
+		drop sost
+
+		merge 1:1 cct turno using "$basesA\cambio_a_`anyo1'_`ant'_2.dta"
+		keep if _merge ==3
+		drop _merge 
+		drop N_ENTIDAD-DISPON CLAVECCT N_CLAVECCT
+		drop if missing(semaforo_std)
+		compress
+		save "$basesA\set_`anyo1'_`ant'_S2.dta", replace
+		//export delimited  "$basesA\set_`anyo1'_`ant'.csv", replace
+}
+
+use "$basesA\set_09_08_S2.dta", clear
+foreach anyo1 in 10 {
+		if `anyo1' == 10{
+			local ant = "09"
+		}
+		else{
+			local ant = `anyo1' - 1
+		}
+		append using "$basesA\set_`anyo1'_`ant'_S2.dta"
+}
+
+save "$basesA\slidding_train_2.dta", replace
+export delimited  "$basesA\slide_train_2.csv", replace	
+		
+use "$basesA\set_11_10_S2.dta", replace
+export delimited  "$basesA\slide_test_2.csv", replace
 
 
-merge m:1 cct turno using  "$basesA\cemabe_general_sum.dta"
-keep if _merge==3
-drop _merge
-drop if missing(semaforo_std)
-compress
-export delimited using "$basesA\cambios_a_2_cemabe_2013.csv", replace
-save  "$basesA\cambios_a_2_cemabe_2013.dta"	, replace
 
+/// VENTANA 3
+foreach anyo1 in 09 10 {
+		if `anyo1' == 09{
+			local ant = "08"
+		}
+		else if `anyo1' == 10{
+			local ant = "09"
+		}
+		else{
+			local ant = `anyo1' - 1
+		}
+		local sig = `anyo1' + 3
+		use "$basesA\B`ant'_ef_2.dta", clear
+		merge 1:1 cct turno using "$basesA\B`anyo1'_ef_2.dta"
+		keep if _merge ==3
+		drop _merge
+		gen cambio_std = p_mat_std_`anyo1'- p_mat_std_`ant'
+		drop if missing(cambio_std)
+		gen pendiente = 0
+		replace pendiente = (cambio_std < 0 & !missing(cambio_std))
+		merge 1:1 cct turno using "$basesA\B`sig'_ef_2.dta"
+		keep if _merge ==3
+		drop _merge
+		gen cambio_final = p_mat_std_`sig'-p_mat_std_`anyo1'
+		drop if missing(cambio_final)
+		gen semaforo_std = 0
+		replace semaforo_std = (cambio_final< -0.2 & !missing(cambio_final))
+		drop p_mat_std_`sig' percentile_`sig' quintil_`sig' cambio_final anyo
+		rename p_mat_std_`ant' p_mat_std_ant
+		rename p_mat_std_`anyo1' p_mat_std_actual
+		rename quintil_`ant' quintil_ant
+		rename quintil_`anyo1' quintil_actual
+		rename percentile_`ant' percentile_ant
+		rename percentile_`anyo1' percentile_actual
 
+		merge m:1 cct using  "$basesA\escuelas_enlace_info.dta"
+		drop if _merge == 2
+		drop _merge
+		replace margina = 0 if missing(margina)
+		gen edo = substr(cct, 1,2)
+		gen sost = substr(cct, 3,1)
+		gen estatal = (sost=="E")
+		gen federal = (sost=="D")
+		gen priv = (sost=="P")
+		destring edo, replace force
+		drop sost
 
+		merge 1:1 cct turno using "$basesA\cambio_a_`anyo1'_`ant'_2.dta"
+		keep if _merge ==3
+		drop _merge 
+		drop N_ENTIDAD-DISPON CLAVECCT N_CLAVECCT
+		drop if missing(semaforo_std)
+		compress
+		save "$basesA\set_`anyo1'_`ant'_S3.dta", replace
+		//export delimited  "$basesA\set_`anyo1'_`ant'.csv", replace
+}
+
+use "$basesA\set_09_08_S3.dta", clear
+save "$basesA\slidding_train_3.dta", replace
+export delimited  "$basesA\slide_train_3.csv", replace	
+		
+use "$basesA\set_10_09_S3.dta", replace
+export delimited  "$basesA\slide_test_3.csv", replace
 
